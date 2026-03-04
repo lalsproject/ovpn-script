@@ -1,0 +1,79 @@
+<!-- Mobile Header -->
+<div class="mobile-header">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <span
+            style="font-weight:700; font-size:15px; background:var(--accent-gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">OpenVPN
+            Manager</span>
+    </div>
+    <a href="/logout" style="color:#f87171; text-decoration:none; font-size:13px;">Logout</a>
+</div>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">🛡️</div>
+        <div class="sidebar-brand-text">
+            <h2>OpenVPN</h2>
+            <span>Management Panel</span>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section-title">Main</div>
+
+        <a href="/" class="nav-link <%= page === 'dashboard' ? 'active' : '' %>" id="nav-dashboard">
+            <span class="nav-link-icon">📊</span>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="/show-users" class="nav-link <%= page === 'show-users' ? 'active' : '' %>" id="nav-show-users">
+            <span class="nav-link-icon">👁️</span>
+            <span>Lihat User</span>
+        </a>
+
+        <div class="nav-section-title">Kelola</div>
+
+        <a href="/add-user" class="nav-link <%= page === 'add-user' ? 'active' : '' %>" id="nav-add-user">
+            <span class="nav-link-icon">➕</span>
+            <span>Tambah User</span>
+        </a>
+
+        <a href="/del-user" class="nav-link <%= page === 'del-user' ? 'active' : '' %>" id="nav-del-user">
+            <span class="nav-link-icon">🗑️</span>
+            <span>Hapus User</span>
+        </a>
+
+        <a href="/routes" class="nav-link <%= page === 'routes' ? 'active' : '' %>" id="nav-routes">
+            <span class="nav-link-icon">🔀</span>
+            <span>Kelola Route</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="sidebar-user">
+            <div class="sidebar-user-avatar">
+                <%= user ? user.charAt(0).toUpperCase() : 'A' %>
+            </div>
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-name">
+                    <%= user %>
+                </div>
+                <div class="sidebar-user-role">Administrator</div>
+            </div>
+        </div>
+        <a href="/logout" class="btn-logout" id="btn-logout">
+            🚪 Logout
+        </a>
+    </div>
+</aside>
+
+<script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+</script>

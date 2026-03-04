@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tambah User OpenVPN">
+    <title>Tambah User — OpenVPN Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+</head>
+
+<body>
+    <div class="app-layout">
+        <%- include('partials/sidebar') %>
+
+            <main class="main-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Tambah User</h1>
+                        <p class="page-subtitle">Buat user VPN baru dengan sertifikat</p>
+                    </div>
+                </div>
+
+                <div class="page-body">
+                    <% if (result) { %>
+                        <% if (result.success) { %>
+                            <div class="alert alert-success">
+                                <span>✅</span>
+                                <span>User berhasil ditambahkan!</span>
+                            </div>
+                            <% } else { %>
+                                <div class="alert alert-error">
+                                    <span>❌</span>
+                                    <span>
+                                        <%= result.error || 'Terjadi kesalahan' %>
+                                    </span>
+                                </div>
+                                <% } %>
+                                    <% } %>
+
+                                        <div class="card form-card">
+                                            <div class="card-header">
+                                                <h3>➕ Form Tambah User</h3>
+                                            </div>
+                                            <div class="card-body">
+                                                <form method="POST" action="/add-user" id="addUserForm">
+                                                    <div class="form-group">
+                                                        <label for="username">Username</label>
+                                                        <input type="text" id="username" name="username"
+                                                            class="form-input" placeholder="Contoh: mikrotik1" required
+                                                            pattern="[a-zA-Z0-9_-]+"
+                                                            title="Hanya huruf, angka, underscore dan dash">
+                                                        <p class="form-help">Nama unik untuk client VPN (tanpa spasi)
+                                                        </p>
+                                                    </div>
+
+                                                    <div class="form-group">
+                                                        <label for="subnets">Subnet LAN (opsional)</label>
+                                                        <input type="text" id="subnets" name="subnets"
+                                                            class="form-input" placeholder="192.168.1.0/24 10.0.0.0/8">
+                                                        <p class="form-help">Pisahkan beberapa subnet dengan spasi.
+                                                            Format: NETWORK/PREFIX</p>
+                                                    </div>
+
+                                                    <div class="form-actions">
+                                                        <button type="submit" class="btn btn-success" id="btnSubmit">
+                                                            <span id="btnText">➕ Tambah User</span>
+                                                            <div class="spinner" id="btnSpinner" style="display:none;">
+                                                            </div>
+                                                        </button>
+                                                        <a href="/" class="btn btn-outline">Batal</a>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                        <% if (result && result.output) { %>
+                                            <div class="card" style="margin-top: 24px;">
+                                                <div class="card-header">
+                                                    <h3>📋 Output</h3>
+                                                </div>
+                                                <div class="card-body" style="padding:0;">
+                                                    <div class="terminal-output">
+                                                        <%= result.output %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <% } %>
+                </div>
+            </main>
+    </div>
+
+    <script>
+        document.getElementById('addUserForm').addEventListener('submit', function () {
+            document.getElementById('btnText').textContent = 'Memproses...';
+            document.getElementById('btnSpinner').style.display = 'block';
+            document.getElementById('btnSubmit').disabled = true;
+            document.getElementById('btnSubmit').style.opacity = '0.7';
+        });
+    </script>
+</body>
+
+</html>

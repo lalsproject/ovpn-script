@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Hapus User OpenVPN">
+    <title>Hapus User — OpenVPN Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+</head>
+
+<body>
+    <div class="app-layout">
+        <%- include('partials/sidebar') %>
+
+            <main class="main-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Hapus User</h1>
+                        <p class="page-subtitle">Revoke dan hapus user VPN beserta sertifikatnya</p>
+                    </div>
+                </div>
+
+                <div class="page-body">
+                    <% if (result) { %>
+                        <% if (result.success) { %>
+                            <div class="alert alert-success">
+                                <span>✅</span>
+                                <span>User berhasil dihapus dan sertifikat di-revoke!</span>
+                            </div>
+                            <% } else { %>
+                                <div class="alert alert-error">
+                                    <span>❌</span>
+                                    <span>
+                                        <%= result.error || 'Terjadi kesalahan' %>
+                                    </span>
+                                </div>
+                                <% } %>
+                                    <% } %>
+
+                                        <div class="card form-card">
+                                            <div class="card-header">
+                                                <h3>🗑️ Form Hapus User</h3>
+                                            </div>
+                                            <div class="card-body">
+                                                <form method="POST" action="/del-user" id="delUserForm">
+                                                    <div class="form-group">
+                                                        <label for="username">Pilih User</label>
+                                                        <% if (users.length> 0) { %>
+                                                            <select id="username" name="username" class="form-select"
+                                                                required>
+                                                                <option value="">— Pilih user —</option>
+                                                                <% users.forEach(function(u) { %>
+                                                                    <option value="<%= u %>">
+                                                                        <%= u %>
+                                                                    </option>
+                                                                    <% }); %>
+                                                            </select>
+                                                            <% } else { %>
+                                                                <div class="empty-state" style="padding: 24px;">
+                                                                    <div class="empty-state-icon">📭</div>
+                                                                    <p class="empty-state-text">Tidak ada user terdaftar
+                                                                    </p>
+                                                                </div>
+                                                                <% } %>
+                                                    </div>
+
+                                                    <% if (users.length> 0) { %>
+                                                        <div class="alert alert-warning" style="margin-bottom:16px;">
+                                                            <span>⚠️</span>
+                                                            <span>Tindakan ini <strong>tidak dapat dibatalkan</strong>.
+                                                                Sertifikat akan di-revoke dan OpenVPN akan
+                                                                di-restart.</span>
+                                                        </div>
+
+                                                        <div class="form-group" id="confirmGroup" style="display:none;">
+                                                            <label for="confirm">Ketik nama user untuk
+                                                                konfirmasi</label>
+                                                            <input type="text" id="confirm" class="form-input"
+                                                                placeholder="Ketik nama user di atas">
+                                                        </div>
+
+                                                        <div class="form-actions">
+                                                            <button type="submit" class="btn btn-danger" id="btnDelete"
+                                                                disabled>
+                                                                <span id="btnText">🗑️ Hapus User</span>
+                                                                <div class="spinner" id="btnSpinner"
+                                                                    style="display:none;"></div>
+                                                            </button>
+                                                            <a href="/" class="btn btn-outline">Batal</a>
+                                                        </div>
+                                                        <% } %>
+                                                </form>
+                                            </div>
+                                        </div>
+
+                                        <% if (result && result.output) { %>
+                                            <div class="card" style="margin-top: 24px;">
+                                                <div class="card-header">
+                                                    <h3>📋 Output</h3>
+                                                </div>
+                                                <div class="card-body" style="padding:0;">
+                                                    <div class="terminal-output">
+                                                        <%= result.output %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <% } %>
+                </div>
+            </main>
+    </div>
+
+    <script>
+        const selectEl = document.getElementById('username');
+        const confirmGroup = document.getElementById('confirmGroup');
+        const confirmInput = document.getElementById('confirm');
+        const btnDelete = document.getElementById('btnDelete');
+
+        if (selectEl) {
+            selectEl.addEventListener('change', function () {
+                if (this.value) {
+                    confirmGroup.style.display = 'block';
+                    confirmInput.value = '';
+                    btnDelete.disabled = true;
+                } else {
+                    confirmGroup.style.display = 'none';
+                    btnDelete.disabled = true;
+                }
+            });
+        }
+
+        if (confirmInput) {
+            confirmInput.addEventListener('input', function () {
+                btnDelete.disabled = (this.value !== selectEl.value);
+            });
+        }
+
+        const form = document.getElementById('delUserForm');
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                if (btnDelete.disabled) {
+                    e.preventDefault();
+                    return;
+                }
+                if (!confirm('Yakin ingin menghapus user "' + selectEl.value + '"? Tindakan ini tidak dapat dibatalkan!')) {
+                    e.preventDefault();
+                    return;
+                }
+                document.getElementById('btnText').textContent = 'Menghapus...';
+                document.getElementById('btnSpinner').style.display = 'block';
+                btnDelete.disabled = true;
+                btnDelete.style.opacity = '0.7';
+            });
+        }
+    </script>
+</body>
+
+</html>

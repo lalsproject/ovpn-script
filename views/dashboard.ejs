@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OpenVPN Management Dashboard">
+    <title>Dashboard — OpenVPN Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+</head>
+
+<body>
+    <div class="app-layout">
+        <%- include('partials/sidebar') %>
+
+            <main class="main-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Dashboard</h1>
+                        <p class="page-subtitle">Overview status OpenVPN server</p>
+                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="location.reload()" id="btn-refresh">
+                        🔄 Refresh
+                    </button>
+                </div>
+
+                <div class="page-body">
+                    <!-- Stats -->
+                    <div class="stats-grid">
+                        <div class="stat-card stat-total">
+                            <div class="stat-card-header">
+                                <span class="stat-label">Total User</span>
+                                <div class="stat-icon">👤</div>
+                            </div>
+                            <div class="stat-value" id="stat-total">
+                                <%= registeredUsers.length %>
+                            </div>
+                        </div>
+                        <div class="stat-card stat-online">
+                            <div class="stat-card-header">
+                                <span class="stat-label">Online</span>
+                                <div class="stat-icon">🟢</div>
+                            </div>
+                            <div class="stat-value" id="stat-online">
+                                <%= registeredUsers.filter(u=> u.status === 'online').length %>
+                            </div>
+                        </div>
+                        <div class="stat-card stat-offline">
+                            <div class="stat-card-header">
+                                <span class="stat-label">Offline</span>
+                                <div class="stat-icon">🔴</div>
+                            </div>
+                            <div class="stat-value" id="stat-offline">
+                                <%= registeredUsers.filter(u=> u.status === 'offline').length %>
+                            </div>
+                        </div>
+                        <div class="stat-card stat-routes">
+                            <div class="stat-card-header">
+                                <span class="stat-label">Total Subnets</span>
+                                <div class="stat-icon">🔀</div>
+                            </div>
+                            <div class="stat-value" id="stat-routes">
+                                <%= registeredUsers.reduce((sum, u)=> sum + u.subnets.length, 0) %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User List -->
+                    <div class="card" style="margin-bottom: 28px;">
+                        <div class="card-header">
+                            <h3>👥 Registered Users</h3>
+                            <span style="font-size:13px; color:var(--text-muted);">
+                                <%= registeredUsers.length %> user
+                            </span>
+                        </div>
+                        <div class="card-body" style="padding:0;">
+                            <% if (registeredUsers.length===0) { %>
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">👤</div>
+                                    <p class="empty-state-text">Belum ada user terdaftar</p>
+                                    <p class="empty-state-sub">Tambah user baru melalui menu "Tambah User"</p>
+                                </div>
+                                <% } else { %>
+                                    <table class="users-table" id="users-table">
+                                        <thead>
+                                            <tr>
+                                                <th>User</th>
+                                                <th>Status</th>
+                                                <th>Subnets</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% registeredUsers.forEach(function(u) { %>
+                                                <tr>
+                                                    <td>
+                                                        <span style="font-weight:600;">
+                                                            <%= u.name %>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <% if (u.status==='online' ) { %>
+                                                            <span class="status-badge status-online">
+                                                                <span class="status-dot"></span>
+                                                                Online
+                                                            </span>
+                                                            <% } else { %>
+                                                                <span class="status-badge status-offline">
+                                                                    <span class="status-dot"></span>
+                                                                    Offline
+                                                                </span>
+                                                                <% } %>
+                                                    </td>
+                                                    <td>
+                                                        <% if (u.subnets.length> 0) { %>
+                                                            <% u.subnets.forEach(function(s) { %>
+                                                                <span class="subnet-tag">🔀 <%= s %></span>
+                                                                <% }); %>
+                                                                    <% } else { %>
+                                                                        <span
+                                                                            style="color:var(--text-muted); font-size:13px;">—</span>
+                                                                        <% } %>
+                                                    </td>
+                                                </tr>
+                                                <% }); %>
+                                        </tbody>
+                                    </table>
+                                    <% } %>
+                        </div>
+                    </div>
+
+                    <!-- Active Users Detail -->
+                    <% if (activeUsers.length> 0) { %>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>🟢 Active Connections</h3>
+                                <span style="font-size:13px; color:var(--text-muted);">
+                                    <%= activeUsers.length %> aktif
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <div class="user-cards-grid">
+                                    <% activeUsers.forEach(function(u) { %>
+                                        <div class="user-card">
+                                            <div class="user-card-header">
+                                                <div class="user-card-name">
+                                                    <span style="font-size:20px;">👤</span>
+                                                    <%= u.name %>
+                                                </div>
+                                                <span class="status-badge status-online">
+                                                    <span class="status-dot"></span>
+                                                    Online
+                                                </span>
+                                            </div>
+                                            <div class="user-card-details">
+                                                <div class="user-card-detail">
+                                                    <span class="user-card-detail-label">Real IP</span>
+                                                    <span class="user-card-detail-value">
+                                                        <%= u.realIp || '-' %>
+                                                    </span>
+                                                </div>
+                                                <div class="user-card-detail">
+                                                    <span class="user-card-detail-label">VPN IP</span>
+                                                    <span class="user-card-detail-value">
+                                                        <%= u.vpnIp || '-' %>
+                                                    </span>
+                                                </div>
+                                                <div class="user-card-detail">
+                                                    <span class="user-card-detail-label">Connected</span>
+                                                    <span class="user-card-detail-value">
+                                                        <%= u.connected || '-' %>
+                                                    </span>
+                                                </div>
+                                                <div class="user-card-detail">
+                                                    <span class="user-card-detail-label">Traffic</span>
+                                                    <span class="user-card-detail-value">
+                                                        <%= u.traffic || '-' %>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <% if (u.subnets && u.subnets.length> 0) { %>
+                                                <div class="user-card-subnets">
+                                                    <div class="user-card-subnets-label">Subnets</div>
+                                                    <% u.subnets.forEach(function(s) { %>
+                                                        <span class="subnet-tag">
+                                                            <%= s %>
+                                                        </span>
+                                                        <% }); %>
+                                                </div>
+                                                <% } %>
+                                        </div>
+                                        <% }); %>
+                                </div>
+                            </div>
+                        </div>
+                        <% } %>
+                </div>
+            </main>
+    </div>
+</body>
+
+</html>
