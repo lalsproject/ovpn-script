@@ -4,8 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Kelola Route OpenVPN">
-    <title>Kelola Route — OpenVPN Manager</title>
+    <title>Kelola Route — OpenVPN Panel</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
@@ -15,211 +14,191 @@
     <div class="app-layout">
         <%- include('partials/sidebar') %>
 
-            <main class="main-content">
-                <div class="page-header">
-                    <div>
-                        <h1 class="page-title">Kelola Route</h1>
-                        <p class="page-subtitle">Tambah, hapus, dan lihat routing (iroute) per user</p>
+            <div class="main-wrapper">
+                <header class="top-bar">
+                    <div style="font-weight: 700; font-size: 1.125rem;">Manajemen Routing (iroute)</div>
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <button class="theme-toggle" onclick="toggleTheme()" title="Ganti Tema">
+                            <span id="themeIcon">🌙</span>
+                        </button>
+                        <a href="/" class="btn btn-outline btn-sm">🔙 Kembali</a>
                     </div>
-                </div>
+                </header>
 
-                <div class="page-body">
+                <div class="container" style="max-width: 900px;">
                     <% if (result) { %>
-                        <% if (result.success) { %>
-                            <div class="alert alert-success">
-                                <span>✅</span>
-                                <span>Route berhasil diperbarui!</span>
+                        <div class="card"
+                            style="border-left: 4px solid <%= result.success ? 'var(--success)' : 'var(--danger)' %>; margin-bottom: 2rem;">
+                            <div class="card-body">
+                                <h4 style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+                                    <%= result.success ? '✅ Berhasil' : '❌ Gagal' %>
+                                </h4>
+                                <p style="font-size: 0.875rem; color: var(--text-secondary);">
+                                    <%= result.success ? 'Konfigurasi routing berhasil diperbarui di file CCD.' :
+                                        (result.error || 'Gagal memperbarui route.' ) %>
+                                </p>
                             </div>
-                            <% } else { %>
-                                <div class="alert alert-error">
-                                    <span>❌</span>
-                                    <span>
-                                        <%= result.error || 'Terjadi kesalahan' %>
-                                    </span>
-                                </div>
-                                <% } %>
-                                    <% } %>
+                        </div>
+                        <% } %>
 
-                                        <div class="card" style="max-width:700px;">
-                                            <div class="card-header">
-                                                <h3>🔀 Route Management</h3>
+                            <div class="card">
+                                <div class="card-body" style="padding: 1.5rem;">
+                                    <div
+                                        style="display: flex; background: var(--bg-primary); padding: 4px; border-radius: 8px; margin-bottom: 2rem;">
+                                        <button class="btn active-tab" id="tabAdd" onclick="switchRouteTab('add')"
+                                            style="flex: 1; justify-content: center; background: none; border: none; font-size: 0.875rem; color: var(--text-muted);">➕
+                                            Tambah Route</button>
+                                        <button class="btn" id="tabRemove" onclick="switchRouteTab('remove')"
+                                            style="flex: 1; justify-content: center; background: none; border: none; font-size: 0.875rem; color: var(--text-muted);">🗑️
+                                            Hapus Route</button>
+                                        <button class="btn" id="tabList" onclick="switchRouteTab('list')"
+                                            style="flex: 1; justify-content: center; background: none; border: none; font-size: 0.875rem; color: var(--text-muted);">📋
+                                            Daftar Route</button>
+                                    </div>
+
+                                    <!-- Form Tambah -->
+                                    <div id="panelAdd" class="route-panel">
+                                        <form method="POST" action="/routes/add">
+                                            <div class="form-group">
+                                                <label class="form-label">Pilih User</label>
+                                                <select name="username" class="form-select" required>
+                                                    <option value="">— Pilih user —</option>
+                                                    <% users.forEach(function(u) { %>
+                                                        <option value="<%= u %>" <%=selectedUser===u ? 'selected' : ''
+                                                            %>><%= u %>
+                                                        </option>
+                                                        <% }); %>
+                                                </select>
                                             </div>
-                                            <div class="card-body">
-                                                <!-- Tabs -->
-                                                <div class="route-tabs">
-                                                    <button class="route-tab active" onclick="switchTab('add')"
-                                                        id="tab-add">➕ Tambah</button>
-                                                    <button class="route-tab" onclick="switchTab('remove')"
-                                                        id="tab-remove">🗑️ Hapus</button>
-                                                    <button class="route-tab" onclick="switchTab('list')"
-                                                        id="tab-list">📋 Lihat</button>
-                                                </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Network/Subnet</label>
+                                                <input type="text" name="subnets" class="form-input"
+                                                    placeholder="Misal: 192.168.10.0/24" required>
+                                            </div>
+                                            <div style="display: flex; justify-content: flex-end;">
+                                                <button type="submit" class="btn btn-primary">➕ Tambahkan Route</button>
+                                            </div>
+                                        </form>
+                                    </div>
 
-                                                <!-- Tab: Add Route -->
-                                                <div class="route-panel active" id="panel-add">
-                                                    <form method="POST" action="/routes/add" id="formAdd">
-                                                        <div class="form-group">
-                                                            <label for="add-username">User</label>
-                                                            <% if (users.length> 0) { %>
-                                                                <select id="add-username" name="username"
-                                                                    class="form-select" required>
-                                                                    <option value="">— Pilih user —</option>
-                                                                    <% users.forEach(function(u) { %>
-                                                                        <option value="<%= u %>" <%=selectedUser===u
-                                                                            ? 'selected' : '' %>><%= u %>
-                                                                        </option>
-                                                                        <% }); %>
-                                                                </select>
-                                                                <% } else { %>
-                                                                    <div
-                                                                        style="padding:16px; color:var(--text-muted); font-size:13px;">
-                                                                        Tidak ada user terdaftar</div>
-                                                                    <% } %>
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <label for="add-subnets">Subnet</label>
-                                                            <input type="text" id="add-subnets" name="subnets"
-                                                                class="form-input"
-                                                                placeholder="192.168.1.0/24 10.0.0.0/8" required>
-                                                            <p class="form-help">Pisahkan beberapa subnet dengan spasi
-                                                            </p>
-                                                        </div>
-                                                        <div class="form-actions">
-                                                            <button type="submit" class="btn btn-success btn-sm">➕
-                                                                Tambah Route</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
+                                    <!-- Form Hapus -->
+                                    <div id="panelRemove" class="route-panel" style="display: none;">
+                                        <form method="POST" action="/routes/remove">
+                                            <div class="form-group">
+                                                <label class="form-label">Pilih User</label>
+                                                <select name="username" class="form-select" required>
+                                                    <option value="">— Pilih user —</option>
+                                                    <% users.forEach(function(u) { %>
+                                                        <option value="<%= u %>" <%=selectedUser===u ? 'selected' : ''
+                                                            %>><%= u %>
+                                                        </option>
+                                                        <% }); %>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Subnet yang Akan Dihapus</label>
+                                                <input type="text" name="subnets" class="form-input"
+                                                    placeholder="Misal: 192.168.10.0/24" required>
+                                            </div>
+                                            <div style="display: flex; justify-content: flex-end;">
+                                                <button type="submit" class="btn btn-primary"
+                                                    style="background: var(--danger);">🗑️ Hapus Route Sekarang</button>
+                                            </div>
+                                        </form>
+                                    </div>
 
-                                                <!-- Tab: Remove Route -->
-                                                <div class="route-panel" id="panel-remove">
-                                                    <form method="POST" action="/routes/remove" id="formRemove">
-                                                        <div class="form-group">
-                                                            <label for="remove-username">User</label>
-                                                            <% if (users.length> 0) { %>
-                                                                <select id="remove-username" name="username"
-                                                                    class="form-select" required>
-                                                                    <option value="">— Pilih user —</option>
-                                                                    <% users.forEach(function(u) { %>
-                                                                        <option value="<%= u %>" <%=selectedUser===u
-                                                                            ? 'selected' : '' %>><%= u %>
-                                                                        </option>
-                                                                        <% }); %>
-                                                                </select>
-                                                                <% } else { %>
-                                                                    <div
-                                                                        style="padding:16px; color:var(--text-muted); font-size:13px;">
-                                                                        Tidak ada user terdaftar</div>
-                                                                    <% } %>
-                                                        </div>
-                                                        <div class="form-group">
-                                                            <label for="remove-subnets">Subnet yang akan dihapus</label>
-                                                            <input type="text" id="remove-subnets" name="subnets"
-                                                                class="form-input" placeholder="192.168.1.0/24"
-                                                                required>
-                                                            <p class="form-help">Pisahkan beberapa subnet dengan spasi
-                                                            </p>
-                                                        </div>
-                                                        <div class="form-actions">
-                                                            <button type="submit" class="btn btn-danger btn-sm">🗑️
-                                                                Hapus Route</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
+                                    <!-- Panel List -->
+                                    <div id="panelList" class="route-panel" style="display: none;">
+                                        <form method="POST" action="/routes/list" id="formList">
+                                            <div class="form-group">
+                                                <label class="form-label">Pilih User untuk Dilihat Routenya</label>
+                                                <select name="username" class="form-select" required
+                                                    onchange="this.form.submit()">
+                                                    <option value="">— Pilih user —</option>
+                                                    <% users.forEach(function(u) { %>
+                                                        <option value="<%= u %>" <%=selectedUser===u ? 'selected' : ''
+                                                            %>><%= u %>
+                                                        </option>
+                                                        <% }); %>
+                                                </select>
+                                            </div>
+                                        </form>
 
-                                                <!-- Tab: List Routes -->
-                                                <div class="route-panel" id="panel-list">
-                                                    <form method="POST" action="/routes/list" id="formList">
-                                                        <div class="form-group">
-                                                            <label for="list-username">User</label>
-                                                            <% if (users.length> 0) { %>
-                                                                <select id="list-username" name="username"
-                                                                    class="form-select" required>
-                                                                    <option value="">— Pilih user —</option>
-                                                                    <% users.forEach(function(u) { %>
-                                                                        <option value="<%= u %>" <%=selectedUser===u
-                                                                            ? 'selected' : '' %>><%= u %>
-                                                                        </option>
-                                                                        <% }); %>
-                                                                </select>
-                                                                <% } else { %>
-                                                                    <div
-                                                                        style="padding:16px; color:var(--text-muted); font-size:13px;">
-                                                                        Tidak ada user terdaftar</div>
-                                                                    <% } %>
-                                                        </div>
-                                                        <div class="form-actions">
-                                                            <button type="submit" class="btn btn-info btn-sm">📋 Lihat
-                                                                Route</button>
-                                                        </div>
-                                                    </form>
-
-                                                    <% if (routes) { %>
-                                                        <div style="margin-top:20px;">
-                                                            <% if (routes.length> 0) { %>
-                                                                <div class="routes-list">
-                                                                    <% routes.forEach(function(r) { %>
-                                                                        <div class="route-item">
-                                                                            <div>
-                                                                                <div class="route-item-network">🔀 <%=
-                                                                                        r.network %>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="route-item-mask">
-                                                                                <%= r.mask %>
-                                                                            </div>
-                                                                        </div>
-                                                                        <% }); %>
-                                                                </div>
-                                                                <% } else { %>
-                                                                    <div class="empty-state" style="padding:24px;">
-                                                                        <div class="empty-state-icon">🔀</div>
-                                                                        <p class="empty-state-text">Tidak ada route
-                                                                            untuk user ini</p>
-                                                                    </div>
-                                                                    <% } %>
+                                        <% if (routes) { %>
+                                            <div style="margin-top: 1.5rem;">
+                                                <h4
+                                                    style="font-size: 0.8125rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1rem;">
+                                                    Route Aktif untuk <%= selectedUser %>
+                                                </h4>
+                                                <% if (routes.length> 0) { %>
+                                                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                                        <% routes.forEach(function(r) { %>
+                                                            <div
+                                                                style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px;">
+                                                                <span
+                                                                    style="font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--ovpn-orange);">🔀
+                                                                    <%= r.network %></span>
+                                                                <span
+                                                                    style="font-size: 0.75rem; color: var(--text-muted);">
+                                                                    <%= r.mask %>
+                                                                </span>
+                                                            </div>
+                                                            <% }); %>
+                                                    </div>
+                                                    <% } else { %>
+                                                        <div
+                                                            style="padding: 2rem; text-align: center; border: 1px dashed var(--border-color); border-radius: 8px; color: var(--text-muted);">
+                                                            Tidak ada iroute yang terkonfigurasi untuk user ini.
                                                         </div>
                                                         <% } %>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <% if (result && result.output) { %>
-                                            <div class="card" style="margin-top: 24px; max-width:700px;">
-                                                <div class="card-header">
-                                                    <h3>📋 Output</h3>
-                                                </div>
-                                                <div class="card-body" style="padding:0;">
-                                                    <div class="terminal-output">
-                                                        <%= result.output %>
-                                                    </div>
-                                                </div>
                                             </div>
                                             <% } %>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <% if (result && result.output) { %>
+                                <div class="card" style="margin-top: 2rem;">
+                                    <div class="card-body" style="background: var(--bg-primary); padding: 1rem;">
+                                        <pre
+                                            style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; white-space: pre-wrap; color: var(--text-secondary);"><%= result.output %></pre>
+                                    </div>
+                                </div>
+                                <% } %>
                 </div>
-            </main>
+            </div>
     </div>
 
+    <style>
+        .active-tab {
+            background: var(--bg-card) !important;
+            color: var(--ovpn-orange) !important;
+            box-shadow: var(--shadow-sm);
+        }
+    </style>
+
     <script>
-        function switchTab(tab) {
-            // Remove active from all tabs and panels
-            document.querySelectorAll('.route-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.route-panel').forEach(p => p.classList.remove('active'));
+        function switchRouteTab(tab) {
+            // Hide all
+            document.querySelectorAll('.route-panel').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.btn').forEach(b => b.classList.remove('active-tab'));
 
-            // Activate selected tab and panel
-            document.getElementById('tab-' + tab).classList.add('active');
-            document.getElementById('panel-' + tab).classList.add('active');
+            // Show selected
+            document.getElementById('panel' + tab.charAt(0).toUpperCase() + tab.slice(1)).style.display = 'block';
+            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active-tab');
         }
 
-        // Auto-load routes when user is selected in list tab
-        const listSelect = document.getElementById('list-username');
-        if (listSelect) {
-            listSelect.addEventListener('change', function () {
-                if (this.value) {
-                    document.getElementById('formList').submit();
-                }
+        // Auto-switch tab if routes data is present
+        <% if (routes) { %>
+            switchRouteTab('list');
+        <% } %>
+
+            // Update theme icon on load
+            document.addEventListener('DOMContentLoaded', () => {
+                const theme = document.documentElement.getAttribute('data-theme');
+                const icon = document.getElementById('themeIcon');
+                if (icon) icon.textContent = theme === 'light' ? '🌙' : '☀️';
             });
-        }
     </script>
 </body>
 

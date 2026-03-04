@@ -1,72 +1,85 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="OpenVPN Management Panel - Secure Login">
-    <title>Login — OpenVPN Manager</title>
+    <title>Login — OpenVPN Panel</title>
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
 </head>
-<body>
-    <div class="login-wrapper">
-        <div class="login-container">
-            <div class="login-card">
-                <div class="login-logo">
-                    <div class="login-logo-icon">🛡️</div>
-                    <h1>OpenVPN Manager</h1>
-                    <p>Management Console</p>
-                </div>
 
-                <% if (error) { %>
-                    <div class="alert alert-error">
-                        <span>⚠️</span>
-                        <span><%= error %></span>
-                    </div>
+<body>
+    <!-- Theme Detection for Login (since it has no sidebar) -->
+    <script>
+        (function () {
+            const theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+
+    <div class="login-page">
+        <div class="login-card">
+            <div style="text-align: center; margin-bottom: 2.5rem;">
+                <div
+                    style="width: 64px; height: 64px; background: var(--ovpn-orange); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; color: white; font-weight: 800; font-size: 2rem; box-shadow: 0 4px 12px rgba(234, 91, 12, 0.3);">
+                    O
+                </div>
+                <h1 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.025em; color: var(--text-primary);">
+                    OpenVPN Manager</h1>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.5rem;">Silakan masuk untuk
+                    mengelola user & route</p>
+            </div>
+
+            <% if (error) { %>
+                <div
+                    style="background: var(--danger-bg); color: var(--danger); padding: 0.875rem; border-radius: 8px; font-size: 0.8125rem; margin-bottom: 1.5rem; text-align: center; border: 1px solid rgba(239, 68, 68, 0.2);">
+                    <strong>Akses Ditolak!</strong>
+                    <%= error %>
+                </div>
                 <% } %>
 
-                <form method="POST" action="/login" id="loginForm">
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" id="username" name="username" class="form-input" 
-                               placeholder="Masukkan username" autocomplete="username" autofocus required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <div class="password-wrapper">
-                            <input type="password" id="password" name="password" class="form-input" 
-                                   placeholder="Masukkan password" autocomplete="current-password" required>
-                            <button type="button" class="password-toggle" onclick="togglePassword()" id="toggleBtn">👁️</button>
+                    <form method="POST" action="/login">
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" class="form-input" placeholder="Masukkan username admin"
+                                required autofocus>
                         </div>
+
+                        <div class="form-group" style="margin-bottom: 2rem;">
+                            <label class="form-label">Password</label>
+                            <input type="password" name="password" class="form-input" placeholder="Masukkan password"
+                                required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary"
+                            style="width: 100%; justify-content: center; padding: 0.875rem;">
+                            🔐 Masuk ke Panel Kontrol
+                        </button>
+                    </form>
+
+                    <div style="margin-top: 2rem; text-align: center;">
+                        <button onclick="toggleTheme()"
+                            style="background: none; border: none; color: var(--text-muted); font-size: 0.75rem; cursor: pointer; text-decoration: underline;">
+                            Ganti Tema (Gelap/Terang)
+                        </button>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" id="loginBtn">
-                        <span id="loginText">Masuk</span>
-                        <div class="spinner" id="loginSpinner" style="display:none;"></div>
-                    </button>
-                </form>
-            </div>
+                    <div style="margin-top: 1.5rem; font-size: 0.75rem; color: var(--text-muted); text-align: center;">
+                        ACS-2026 &copy; System Administration
+                    </div>
         </div>
     </div>
 
     <script>
-        function togglePassword() {
-            const pw = document.getElementById('password');
-            const btn = document.getElementById('toggleBtn');
-            if (pw.type === 'password') {
-                pw.type = 'text';
-                btn.textContent = '🙈';
-            } else {
-                pw.type = 'password';
-                btn.textContent = '👁️';
-            }
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
         }
-
-        document.getElementById('loginForm').addEventListener('submit', function() {
-            document.getElementById('loginText').textContent = 'Memproses...';
-            document.getElementById('loginSpinner').style.display = 'block';
-        });
     </script>
 </body>
+
 </html>

@@ -4,8 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Hapus User OpenVPN">
-    <title>Hapus User — OpenVPN Manager</title>
+    <title>Hapus User — OpenVPN Panel</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
@@ -15,145 +14,149 @@
     <div class="app-layout">
         <%- include('partials/sidebar') %>
 
-            <main class="main-content">
-                <div class="page-header">
-                    <div>
-                        <h1 class="page-title">Hapus User</h1>
-                        <p class="page-subtitle">Revoke dan hapus user VPN beserta sertifikatnya</p>
+            <div class="main-wrapper">
+                <header class="top-bar">
+                    <div style="font-weight: 700; font-size: 1.125rem;">Hapus User</div>
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <button class="theme-toggle" onclick="toggleTheme()" title="Ganti Tema">
+                            <span id="themeIcon">🌙</span>
+                        </button>
+                        <a href="/" class="btn btn-outline btn-sm">🔙 Kembali</a>
                     </div>
-                </div>
+                </header>
 
-                <div class="page-body">
+                <div class="container" style="max-width: 800px;">
                     <% if (result) { %>
-                        <% if (result.success) { %>
-                            <div class="alert alert-success">
-                                <span>✅</span>
-                                <span>User berhasil dihapus dan sertifikat di-revoke!</span>
+                        <div class="card"
+                            style="border-left: 4px solid <%= result.success ? 'var(--success)' : 'var(--danger)' %>; margin-bottom: 2rem;">
+                            <div class="card-body">
+                                <h4 style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+                                    <%= result.success ? '✅ Berhasil' : '❌ Gagal' %>
+                                </h4>
+                                <p style="font-size: 0.875rem; color: var(--text-secondary);">
+                                    <%= result.success ? 'User dan seluruh konfigurasinya telah dihapus dari server.' :
+                                        (result.error || 'Gagal menghapus user.' ) %>
+                                </p>
                             </div>
-                            <% } else { %>
-                                <div class="alert alert-error">
-                                    <span>❌</span>
-                                    <span>
-                                        <%= result.error || 'Terjadi kesalahan' %>
-                                    </span>
+                        </div>
+                        <% } %>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 style="font-size: 1rem; color: var(--danger);">⚠️ Tindakan Berbahaya</h3>
                                 </div>
-                                <% } %>
-                                    <% } %>
-
-                                        <div class="card form-card">
-                                            <div class="card-header">
-                                                <h3>🗑️ Form Hapus User</h3>
-                                            </div>
-                                            <div class="card-body">
-                                                <form method="POST" action="/del-user" id="delUserForm">
-                                                    <div class="form-group">
-                                                        <label for="username">Pilih User</label>
-                                                        <% if (users.length> 0) { %>
-                                                            <select id="username" name="username" class="form-select"
-                                                                required>
-                                                                <option value="">— Pilih user —</option>
-                                                                <% users.forEach(function(u) { %>
-                                                                    <option value="<%= u %>">
-                                                                        <%= u %>
-                                                                    </option>
-                                                                    <% }); %>
-                                                            </select>
-                                                            <% } else { %>
-                                                                <div class="empty-state" style="padding: 24px;">
-                                                                    <div class="empty-state-icon">📭</div>
-                                                                    <p class="empty-state-text">Tidak ada user terdaftar
-                                                                    </p>
-                                                                </div>
-                                                                <% } %>
+                                <div class="card-body">
+                                    <form method="POST" action="/del-user" id="delUserForm"
+                                        onsubmit="return confirmDelete()">
+                                        <div class="form-group">
+                                            <label class="form-label">Pilih User yang Akan Dihapus</label>
+                                            <% if (users && users.length> 0) { %>
+                                                <select id="username" name="username" class="form-select" required
+                                                    onchange="handleUserSelect()">
+                                                    <option value="">— Silakan pilih user —</option>
+                                                    <% users.forEach(function(u) { %>
+                                                        <option value="<%= u %>">
+                                                            <%= u %>
+                                                        </option>
+                                                        <% }); %>
+                                                </select>
+                                                <% } else { %>
+                                                    <div
+                                                        style="padding: 1.5rem; background: var(--bg-primary); border-radius: 8px; text-align: center; color: var(--text-muted);">
+                                                        Tidak ada user terdaftar di direktori CCD.
                                                     </div>
-
-                                                    <% if (users.length> 0) { %>
-                                                        <div class="alert alert-warning" style="margin-bottom:16px;">
-                                                            <span>⚠️</span>
-                                                            <span>Tindakan ini <strong>tidak dapat dibatalkan</strong>.
-                                                                Sertifikat akan di-revoke dan OpenVPN akan
-                                                                di-restart.</span>
-                                                        </div>
-
-                                                        <div class="form-group" id="confirmGroup" style="display:none;">
-                                                            <label for="confirm">Ketik nama user untuk
-                                                                konfirmasi</label>
-                                                            <input type="text" id="confirm" class="form-input"
-                                                                placeholder="Ketik nama user di atas">
-                                                        </div>
-
-                                                        <div class="form-actions">
-                                                            <button type="submit" class="btn btn-danger" id="btnDelete"
-                                                                disabled>
-                                                                <span id="btnText">🗑️ Hapus User</span>
-                                                                <div class="spinner" id="btnSpinner"
-                                                                    style="display:none;"></div>
-                                                            </button>
-                                                            <a href="/" class="btn btn-outline">Batal</a>
-                                                        </div>
-                                                        <% } %>
-                                                </form>
-                                            </div>
+                                                    <% } %>
                                         </div>
 
-                                        <% if (result && result.output) { %>
-                                            <div class="card" style="margin-top: 24px;">
-                                                <div class="card-header">
-                                                    <h3>📋 Output</h3>
-                                                </div>
-                                                <div class="card-body" style="padding:0;">
-                                                    <div class="terminal-output">
-                                                        <%= result.output %>
-                                                    </div>
+                                        <div id="dangerZone"
+                                            style="display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                                            <div
+                                                style="background: var(--danger-bg); color: var(--danger); padding: 1rem; border-radius: 8px; font-size: 0.875rem; margin-bottom: 1.5rem;">
+                                                <strong>Peringatan!</strong> Menghapus user akan merevoke sertifikat
+                                                TLS/SSL mereka. Client tersebut tidak akan bisa terhubung lagi ke VPN.
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label class="form-label">Konfirmasi Nama User</label>
+                                                <input type="text" id="confirmName" class="form-input"
+                                                    placeholder="Tulis nama user untuk mengonfirmasi"
+                                                    autocomplete="off">
+                                                <div
+                                                    style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                                                    Ketik ulang <span id="targetName"
+                                                        style="font-weight: 700; color: var(--text-primary);"></span>
+                                                    untuk mengaktifkan tombol hapus.
                                                 </div>
                                             </div>
-                                            <% } %>
+
+                                            <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                                                <button type="submit" id="btnDelete" class="btn btn-primary"
+                                                    style="background: var(--danger); opacity: 0.5;" disabled>
+                                                    🗑️ Konfirmasi & Hapus Permanen
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <% if (result && result.output) { %>
+                                <div class="card" style="margin-top: 2rem;">
+                                    <div class="card-header">
+                                        <h3 style="font-size: 0.875rem;">📋 Terminal Output</h3>
+                                    </div>
+                                    <div class="card-body" style="background: var(--bg-primary); padding: 1rem;">
+                                        <pre
+                                            style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; white-space: pre-wrap; color: var(--text-secondary);"><%= result.output %></pre>
+                                    </div>
+                                </div>
+                                <% } %>
                 </div>
-            </main>
+            </div>
     </div>
 
     <script>
-        const selectEl = document.getElementById('username');
-        const confirmGroup = document.getElementById('confirmGroup');
-        const confirmInput = document.getElementById('confirm');
-        const btnDelete = document.getElementById('btnDelete');
+        function handleUserSelect() {
+            const select = document.getElementById('username');
+            const zone = document.getElementById('dangerZone');
+            const target = document.getElementById('targetName');
+            const confirmInput = document.getElementById('confirmName');
+            const btn = document.getElementById('btnDelete');
 
-        if (selectEl) {
-            selectEl.addEventListener('change', function () {
-                if (this.value) {
-                    confirmGroup.style.display = 'block';
-                    confirmInput.value = '';
-                    btnDelete.disabled = true;
-                } else {
-                    confirmGroup.style.display = 'none';
-                    btnDelete.disabled = true;
-                }
-            });
+            if (select.value) {
+                zone.style.display = 'block';
+                target.textContent = select.value;
+                confirmInput.value = '';
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+            } else {
+                zone.style.display = 'none';
+            }
         }
 
-        if (confirmInput) {
-            confirmInput.addEventListener('input', function () {
-                btnDelete.disabled = (this.value !== selectEl.value);
-            });
+        document.getElementById('confirmName').addEventListener('input', function () {
+            const select = document.getElementById('username');
+            const btn = document.getElementById('btnDelete');
+            if (this.value === select.value) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+            }
+        });
+
+        function confirmDelete() {
+            const select = document.getElementById('username');
+            return confirm(`Apakah Anda benar-benar yakin ingin menghapus user "${select.value}" secara permanen?`);
         }
 
-        const form = document.getElementById('delUserForm');
-        if (form) {
-            form.addEventListener('submit', function (e) {
-                if (btnDelete.disabled) {
-                    e.preventDefault();
-                    return;
-                }
-                if (!confirm('Yakin ingin menghapus user "' + selectEl.value + '"? Tindakan ini tidak dapat dibatalkan!')) {
-                    e.preventDefault();
-                    return;
-                }
-                document.getElementById('btnText').textContent = 'Menghapus...';
-                document.getElementById('btnSpinner').style.display = 'block';
-                btnDelete.disabled = true;
-                btnDelete.style.opacity = '0.7';
-            });
-        }
+        // Update theme icon on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const icon = document.getElementById('themeIcon');
+            if (icon) icon.textContent = theme === 'light' ? '🌙' : '☀️';
+        });
     </script>
 </body>
 

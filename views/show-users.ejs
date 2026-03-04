@@ -4,8 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Lihat User OpenVPN">
-    <title>Lihat User — OpenVPN Manager</title>
+    <title>Semua User — OpenVPN Panel</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
@@ -15,185 +14,116 @@
     <div class="app-layout">
         <%- include('partials/sidebar') %>
 
-            <main class="main-content">
-                <div class="page-header">
-                    <div>
-                        <h1 class="page-title">Lihat User</h1>
-                        <p class="page-subtitle">Status koneksi dan detail semua user VPN</p>
+            <div class="main-wrapper">
+                <header class="top-bar">
+                    <div style="font-weight: 700; font-size: 1.125rem;">Status Koneksi</div>
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <button class="theme-toggle" onclick="toggleTheme()" title="Ganti Tema">
+                            <span id="themeIcon">🌙</span>
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="location.reload()">🔄 Refresh</button>
                     </div>
-                    <button class="btn btn-outline btn-sm" onclick="location.reload()" id="btn-refresh-users">
-                        🔄 Refresh
-                    </button>
-                </div>
+                </header>
 
-                <div class="page-body">
-                    <!-- Stats Summary -->
-                    <div class="stats-grid" style="margin-bottom:28px;">
-                        <div class="stat-card stat-online">
-                            <div class="stat-card-header">
-                                <span class="stat-label">Online</span>
-                                <div class="stat-icon">🟢</div>
-                            </div>
+                <div class="container">
+                    <!-- Status Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-item" style="border-bottom: 3px solid var(--success);">
+                            <div class="stat-label">Sedang Terhubung</div>
                             <div class="stat-value">
                                 <%= activeUsers.length %>
                             </div>
                         </div>
-                        <div class="stat-card stat-total">
-                            <div class="stat-card-header">
-                                <span class="stat-label">Total Terdaftar</span>
-                                <div class="stat-icon">👤</div>
-                            </div>
+                        <div class="stat-item" style="border-bottom: 3px solid var(--text-muted);">
+                            <div class="stat-label">Total Terdaftar</div>
                             <div class="stat-value">
                                 <%= registeredUsers.length %>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Active Users -->
-                    <% if (activeUsers.length> 0) { %>
-                        <div class="card" style="margin-bottom: 28px;">
-                            <div class="card-header">
-                                <h3>🟢 User Aktif (<%= activeUsers.length %>)</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="user-cards-grid">
+                    <!-- Active Users Detailed -->
+                    <div style="margin-bottom: 2rem;">
+                        <h4
+                            style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1rem; letter-spacing: 0.05em;">
+                            Detail Koneksi Aktif</h4>
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1rem;">
+                            <% if (activeUsers.length===0) { %>
+                                <div
+                                    style="grid-column: 1/-1; padding: 3rem; background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: 12px; text-align: center; color: var(--text-muted);">
+                                    Tidak ada user yang terkoneksi ke daemon OpenVPN saat ini.
+                                </div>
+                                <% } else { %>
                                     <% activeUsers.forEach(function(u) { %>
-                                        <div class="user-card">
-                                            <div class="user-card-header">
-                                                <div class="user-card-name">
-                                                    <span style="font-size:20px;">👤</span>
-                                                    <%= u.name %>
+                                        <div class="card" style="margin-bottom: 0;">
+                                            <div class="card-body">
+                                                <div
+                                                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                                                    <div>
+                                                        <div style="font-weight: 700; font-size: 1.125rem;">
+                                                            <%= u.name %>
+                                                        </div>
+                                                        <div
+                                                            style="font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; color: var(--ovpn-orange);">
+                                                            <%= u.vpnIp || 'VPN IP Pending' %>
+                                                        </div>
+                                                    </div>
+                                                    <span class="status-indicator status-online">Connected</span>
                                                 </div>
-                                                <span class="status-badge status-online">
-                                                    <span class="status-dot"></span>
-                                                    Online
-                                                </span>
+                                                <div
+                                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.8125rem;">
+                                                    <div>
+                                                        <div style="color: var(--text-muted);">Real IP</div>
+                                                        <div style="font-weight: 500;">
+                                                            <%= u.realIp %>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div style="color: var(--text-muted);">Uptime</div>
+                                                        <div style="font-weight: 500;">
+                                                            <%= u.connected %>
+                                                        </div>
+                                                    </div>
+                                                    <div style="grid-column: 1/-1;">
+                                                        <div style="color: var(--text-muted); margin-bottom: 0.25rem;">
+                                                            Traffic (RX / TX)</div>
+                                                        <div
+                                                            style="font-weight: 600; font-family: 'JetBrains Mono', monospace;">
+                                                            <%= u.traffic %>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="user-card-details">
-                                                <div class="user-card-detail">
-                                                    <span class="user-card-detail-label">Real IP</span>
-                                                    <span class="user-card-detail-value">
-                                                        <%= u.realIp || '-' %>
-                                                    </span>
-                                                </div>
-                                                <div class="user-card-detail">
-                                                    <span class="user-card-detail-label">VPN IP</span>
-                                                    <span class="user-card-detail-value">
-                                                        <%= u.vpnIp || '-' %>
-                                                    </span>
-                                                </div>
-                                                <div class="user-card-detail">
-                                                    <span class="user-card-detail-label">Connected</span>
-                                                    <span class="user-card-detail-value">
-                                                        <%= u.connected || '-' %>
-                                                    </span>
-                                                </div>
-                                                <div class="user-card-detail">
-                                                    <span class="user-card-detail-label">RX / TX</span>
-                                                    <span class="user-card-detail-value">
-                                                        <%= u.traffic || '-' %>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <% if (u.subnets && u.subnets.length> 0) { %>
-                                                <div class="user-card-subnets">
-                                                    <div class="user-card-subnets-label">Subnets</div>
-                                                    <% u.subnets.forEach(function(s) { %>
-                                                        <span class="subnet-tag">🔀 <%= s %></span>
-                                                        <% }); %>
-                                                </div>
-                                                <% } %>
                                         </div>
                                         <% }); %>
-                                </div>
-                            </div>
-                        </div>
-                        <% } %>
-
-                            <!-- All Registered Users -->
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3>📋 Semua User Terdaftar</h3>
-                                    <span style="font-size:13px; color:var(--text-muted);">
-                                        <%= registeredUsers.length %> user
-                                    </span>
-                                </div>
-                                <div class="card-body" style="padding:0;">
-                                    <% if (registeredUsers.length===0) { %>
-                                        <div class="empty-state">
-                                            <div class="empty-state-icon">👤</div>
-                                            <p class="empty-state-text">Belum ada user terdaftar</p>
-                                            <p class="empty-state-sub">Tambah user baru melalui menu "Tambah User"</p>
-                                        </div>
-                                        <% } else { %>
-                                            <table class="users-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>#</th>
-                                                        <th>User</th>
-                                                        <th>Status</th>
-                                                        <th>Subnets</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <% registeredUsers.forEach(function(u, i) { %>
-                                                        <tr>
-                                                            <td style="color:var(--text-muted); font-size:13px;">
-                                                                <%= i + 1 %>
-                                                            </td>
-                                                            <td>
-                                                                <span style="font-weight:600;">
-                                                                    <%= u.name %>
-                                                                </span>
-                                                            </td>
-                                                            <td>
-                                                                <% if (u.status==='online' ) { %>
-                                                                    <span class="status-badge status-online">
-                                                                        <span class="status-dot"></span>
-                                                                        Online
-                                                                    </span>
-                                                                    <% } else { %>
-                                                                        <span class="status-badge status-offline">
-                                                                            <span class="status-dot"></span>
-                                                                            Offline
-                                                                        </span>
-                                                                        <% } %>
-                                                            </td>
-                                                            <td>
-                                                                <% if (u.subnets.length> 0) { %>
-                                                                    <% u.subnets.forEach(function(s) { %>
-                                                                        <span class="subnet-tag">🔀 <%= s %></span>
-                                                                        <% }); %>
-                                                                            <% } else { %>
-                                                                                <span
-                                                                                    style="color:var(--text-muted); font-size:13px;">—</span>
-                                                                                <% } %>
-                                                            </td>
-                                                        </tr>
-                                                        <% }); %>
-                                                </tbody>
-                                            </table>
                                             <% } %>
-                                </div>
-                            </div>
+                        </div>
+                    </div>
 
-                            <!-- Raw Output -->
-                            <details style="margin-top:28px;">
-                                <summary
-                                    style="cursor:pointer; color:var(--text-muted); font-size:13px; font-weight:500; padding:8px 0;">
-                                    📄 Lihat Raw Output
-                                </summary>
-                                <div class="card" style="margin-top:8px;">
-                                    <div class="card-body" style="padding:0;">
-                                        <div class="terminal-output">
-                                            <%= rawOutput %>
-                                        </div>
-                                    </div>
-                                </div>
-                            </details>
+                    <!-- Summary Raw Output -->
+                    <div class="card">
+                        <div class="card-header" style="cursor: pointer;"
+                            onclick="document.getElementById('rawOut').style.display = document.getElementById('rawOut').style.display === 'none' ? 'block' : 'none'">
+                            <h3 style="font-size: 0.8125rem;">📄 Log Status Server (Raw)</h3>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">Klik untuk detail</span>
+                        </div>
+                        <div class="card-body" id="rawOut" style="display: none; background: var(--bg-primary);">
+                            <pre
+                                style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-secondary); white-space: pre-wrap;"><%= rawOutput %></pre>
+                        </div>
+                    </div>
                 </div>
-            </main>
+            </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const icon = document.getElementById('themeIcon');
+            if (icon) icon.textContent = theme === 'light' ? '🌙' : '☀️';
+        });
+    </script>
 </body>
 
 </html>

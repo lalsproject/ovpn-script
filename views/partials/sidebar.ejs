@@ -1,79 +1,101 @@
-<!-- Mobile Header -->
-<div class="mobile-header">
-    <div style="display:flex; align-items:center; gap:12px;">
-        <button class="hamburger" onclick="toggleSidebar()">☰</button>
-        <span
-            style="font-weight:700; font-size:15px; background:var(--accent-gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">OpenVPN
-            Manager</span>
-    </div>
-    <a href="/logout" style="color:#f87171; text-decoration:none; font-size:13px;">Logout</a>
+<!-- Global Theme Script -->
+<script>
+    (function () {
+        const theme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+    })();
+</script>
+
+<!-- Mobile Overlay -->
+<div id="mobileOverlay" class="sidebar-overlay"
+    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:900;" onclick="toggleSidebar()">
 </div>
 
-<!-- Sidebar Overlay -->
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
 <!-- Sidebar -->
-<aside class="sidebar" id="sidebar">
-    <div class="sidebar-brand">
-        <div class="sidebar-brand-icon">🛡️</div>
-        <div class="sidebar-brand-text">
-            <h2>OpenVPN</h2>
-            <span>Management Panel</span>
-        </div>
+<aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo">O</div>
+        <div class="sidebar-title">OpenVPN</div>
     </div>
 
     <nav class="sidebar-nav">
-        <div class="nav-section-title">Main</div>
-
-        <a href="/" class="nav-link <%= page === 'dashboard' ? 'active' : '' %>" id="nav-dashboard">
-            <span class="nav-link-icon">📊</span>
-            <span>Dashboard</span>
+        <a href="/" class="nav-item <%= page === 'dashboard' ? 'active' : '' %>">
+            <span class="nav-icon">📊</span> Dashboard
         </a>
-
-        <a href="/show-users" class="nav-link <%= page === 'show-users' ? 'active' : '' %>" id="nav-show-users">
-            <span class="nav-link-icon">👁️</span>
-            <span>Lihat User</span>
+        <a href="/show-users" class="nav-item <%= page === 'show-users' ? 'active' : '' %>">
+            <span class="nav-icon">👥</span> Lihat User
         </a>
-
-        <div class="nav-section-title">Kelola</div>
-
-        <a href="/add-user" class="nav-link <%= page === 'add-user' ? 'active' : '' %>" id="nav-add-user">
-            <span class="nav-link-icon">➕</span>
-            <span>Tambah User</span>
+        <a href="/add-user" class="nav-item <%= page === 'add-user' ? 'active' : '' %>">
+            <span class="nav-icon">➕</span> Tambah User
         </a>
-
-        <a href="/del-user" class="nav-link <%= page === 'del-user' ? 'active' : '' %>" id="nav-del-user">
-            <span class="nav-link-icon">🗑️</span>
-            <span>Hapus User</span>
+        <a href="/del-user" class="nav-item <%= page === 'del-user' ? 'active' : '' %>">
+            <span class="nav-icon">🗑️</span> Hapus User
         </a>
-
-        <a href="/routes" class="nav-link <%= page === 'routes' ? 'active' : '' %>" id="nav-routes">
-            <span class="nav-link-icon">🔀</span>
-            <span>Kelola Route</span>
+        <a href="/routes" class="nav-item <%= page === 'routes' ? 'active' : '' %>">
+            <span class="nav-icon">🔀</span> Kelola Route
         </a>
     </nav>
 
     <div class="sidebar-footer">
-        <div class="sidebar-user">
-            <div class="sidebar-user-avatar">
+        <div
+            style="font-size: 0.8125rem; color: var(--text-on-sidebar); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 8px;">
+            <div
+                style="width: 24px; height: 24px; background: var(--ovpn-orange); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 10px;">
                 <%= user ? user.charAt(0).toUpperCase() : 'A' %>
             </div>
-            <div class="sidebar-user-info">
-                <div class="sidebar-user-name">
-                    <%= user %>
-                </div>
-                <div class="sidebar-user-role">Administrator</div>
-            </div>
+            <%= user %>
         </div>
-        <a href="/logout" class="btn-logout" id="btn-logout">
-            🚪 Logout
+        <a href="/logout" class="btn btn-outline"
+            style="width: 100%; border-color: rgba(255,255,255,0.1); color: var(--text-on-sidebar); font-size: 0.8125rem;">
+            🚪 Keluar
         </a>
     </div>
 </aside>
 
+<!-- Top Bar for Theme and Mobile Toggle -->
+<header class="top-bar-mobile" style="display: none;">
+    <button class="mobile-nav-toggle" onclick="toggleSidebar()">☰</button>
+    <div style="font-weight: 700;">OpenVPN</div>
+    <div style="width: 40px;"></div> <!-- Spacer -->
+</header>
+
 <script>
     function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('open');
-        document.getElementById('sidebarOverlay').classList.toggle('open');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('mobileOverlay');
+        sidebar.classList.toggle('open');
+        overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+    }
+
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+
+        // Update toggle icon if it exists
+        const icon = document.getElementById('themeIcon');
+        if (icon) icon.textContent = newTheme === 'light' ? '🌙' : '☀️';
     }
 </script>
+
+<style>
+    @media (max-width: 1024px) {
+        .top-bar-mobile {
+            display: flex !important;
+            height: 60px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .main-wrapper {
+            margin-left: 0 !important;
+        }
+    }
+</style>
